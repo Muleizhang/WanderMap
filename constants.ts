@@ -10,12 +10,22 @@ export const INITIAL_CENTER: [number, number] = [20, 0];
 export const INITIAL_ZOOM = 2;
 
 // Cloud Services Configuration
-// NOTE: Replace these with your actual keys from Supabase and Cloudinary dashboard
-export const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-export const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+// NOTE: These are pulled from Vercel Environment Variables
+// We use a safe access pattern to avoid crashes if import.meta.env is undefined in certain environments
+const getEnv = (key: string, defaultValue: string = "") => {
+  try {
+    // @ts-ignore
+    return (import.meta.env && import.meta.env[key]) || defaultValue;
+  } catch (e) {
+    return defaultValue;
+  }
+};
 
-export const CLOUDINARY_CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "demo"; // Replace 'demo' with your cloud name
-export const CLOUDINARY_UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "wandermap_preset"; // You must create an 'unsigned' preset in Cloudinary
+export const SUPABASE_URL = getEnv("VITE_SUPABASE_URL");
+export const SUPABASE_ANON_KEY = getEnv("VITE_SUPABASE_ANON_KEY");
+
+export const CLOUDINARY_CLOUD_NAME = getEnv("VITE_CLOUDINARY_CLOUD_NAME", "demo"); 
+export const CLOUDINARY_UPLOAD_PRESET = getEnv("VITE_CLOUDINARY_UPLOAD_PRESET", "wandermap_preset");
 
 export const LOCAL_STORAGE_KEY = "wandermap_memories_v1";
 
