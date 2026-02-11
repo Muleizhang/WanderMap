@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Language, Memory, Photo } from '../types';
 import { Button, Input, TextArea } from './UI';
-import { Upload, X, MapPin, Loader2, Calendar } from 'lucide-react';
+import { Upload, X, MapPin, Loader2, Calendar, Edit2 } from 'lucide-react';
 import { uploadImage } from '../services/storage';
 import { TRANSLATIONS } from '../constants';
 
@@ -11,6 +11,7 @@ interface MemoryEditorProps {
   lng?: number;
   onSave: (data: Omit<Memory, 'id' | 'createdAt'>) => void;
   onCancel: () => void;
+  onRequestLocationChange?: () => void;
   lang: Language;
 }
 
@@ -20,6 +21,7 @@ export const MemoryEditor: React.FC<MemoryEditorProps> = ({
   lng = 0, 
   onSave, 
   onCancel,
+  onRequestLocationChange,
   lang
 }) => {
   const t = TRANSLATIONS[lang];
@@ -32,6 +34,10 @@ export const MemoryEditor: React.FC<MemoryEditorProps> = ({
   );
   const [photos, setPhotos] = useState<Photo[]>(initialData?.photos || []);
   const [isProcessing, setIsProcessing] = useState(false);
+  
+  // Use the prop values for current coordinates
+  const currentLat = lat;
+  const currentLng = lng;
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -73,8 +79,8 @@ export const MemoryEditor: React.FC<MemoryEditorProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave({
-      lat: initialData?.lat ?? lat,
-      lng: initialData?.lng ?? lng,
+      lat: currentLat,
+      lng: currentLng,
       locationName: locationName || 'Unknown Location',
       description,
       photos,
@@ -89,10 +95,22 @@ export const MemoryEditor: React.FC<MemoryEditorProps> = ({
           <div className="bg-white p-2 rounded-full shadow-sm">
             <MapPin className="text-primary" size={20} />
           </div>
-          <div className="text-sm text-slate-600">
+          <div className="flex-1 text-sm text-slate-600">
             <p className="font-medium text-slate-900">{t.coordinates}</p>
-            <p>{(initialData?.lat ?? lat).toFixed(6)}, {(initialData?.lng ?? lng).toFixed(6)}</p>
+            <p>{currentLat.toFixed(6)}, {currentLng.toFixed(6)}</p>
           </div>
+          {onRequestLocationChange && (
+            <Button 
+              type="button" 
+              variant="secondary" 
+              onClick={onRequestLocationChange}
+              className="!py-1 !px-3 text-xs"
+              title={t.change_location_hint}
+            >
+              <Edit2 size={14} />
+              {t.change_location}
+            </Button>
+          )}
         </div>
 
         <div className="space-y-4">

@@ -243,16 +243,19 @@ export const updateMemory = async (memory: Memory): Promise<void> => {
   }
 };
 
-export const deleteMemory = async (id: string): Promise<void> => {
+export const deleteMemory = async (id: string): Promise<boolean> => {
   if (supabase) {
     const { error } = await supabase.from('memories').delete().eq('id', id);
     if (error) {
       console.error("Supabase delete error:", error);
       alert("Failed to delete from cloud. Please ensure you are logged in and have permission.");
+      return false;
     }
+    return true;
   } else {
     const memories = getLocalMemories().filter(m => m.id !== id);
     saveLocalMemories(memories);
+    return true;
   }
 };
 

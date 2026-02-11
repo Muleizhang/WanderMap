@@ -68,7 +68,10 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     no_description: "No description added.",
     delete_confirm: "Are you sure you want to delete this memory?",
     login_alert: "Please login to add a memory to this location.",
-    incorrect_password: "Incorrect password or login failed."
+    incorrect_password: "Incorrect password or login failed.",
+    change_location: "Change",
+    change_location_hint: "Right-click on the map to select a new location",
+    picking_location_hint: "Right-click to select a new location"
   },
   zh: {
     memories_count: "条回忆",
@@ -101,6 +104,9 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     no_description: "暂无描述。",
     delete_confirm: "确定要删除这条回忆吗？",
     login_alert: "请先登录以在此处添加回忆。",
-    incorrect_password: "密码错误或登录失败。"
+    incorrect_password: "密码错误或登录失败。",
+    change_location: "更改",
+    change_location_hint: "右键点击地图选择新位置",
+    picking_location_hint: "右键点击选择新位置"
   }
 };

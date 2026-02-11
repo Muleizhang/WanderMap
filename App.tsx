@@ -20,6 +20,7 @@ const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [lang, setLang] = useState<Language>('en');
+  const [isPickingLocation, setIsPickingLocation] = useState(false);
 
   const t = TRANSLATIONS[lang];
   
@@ -93,11 +94,29 @@ const App: React.FC = () => {
 
   const handleMapClick = (lat: number, lng: number) => {
     if (isAuthenticated) {
-      setEditorData({ lat, lng });
-      setShowEditorModal(true);
+      if (isPickingLocation && editorData) {
+        // User is picking a new location for an existing memory
+        setEditorData({ 
+          lat, 
+          lng, 
+          initial: editorData.initial 
+        });
+        setIsPickingLocation(false);
+        setShowEditorModal(true);
+      } else {
+        // Normal new memory creation
+        setEditorData({ lat, lng });
+        setShowEditorModal(true);
+      }
     } else {
       alert(t.login_alert);
     }
+  };
+
+  const handleRequestLocationChange = () => {
+    // Close editor and enter location picking mode
+    setShowEditorModal(false);
+    setIsPickingLocation(true);
   };
 
   const handleSaveMemory = async (data: Omit<Memory, 'id' | 'createdAt'>) => {
@@ -126,12 +145,21 @@ const App: React.FC = () => {
   };
 
   const handleDeleteMemory = async (id: string) => {
-    if (confirm(t.delete_confirm)) {
-      setIsLoading(true);
-      await storage.deleteMemory(id);
-      setMemories(prev => prev.filter(m => m.id !== id));
+    if (!confirm(t.delete_confirm)) {
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const success = await storage.deleteMemory(id);
+      if (success) {
+        // Only update local state if the backend deletion was successful
+        setMemories(prev => prev.filter(m => m.id !== id));
+        setViewState({ type: 'MAP' });
+      }
+    } catch (error) {
+      console.error("Delete failed:", error);
+    } finally {
       setIsLoading(false);
-      setViewState({ type: 'MAP' });
     }
   };
 
@@ -214,7 +242,7 @@ const App: React.FC = () => {
         {/* Hint Overlay if logged in */}
         {isAuthenticated && viewState.type === 'MAP' && (
           <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 bg-slate-900/80 text-white px-4 py-2 rounded-full text-sm font-medium backdrop-blur pointer-events-none animate-bounce z-[40] whitespace-nowrap">
-            {t.right_click_hint}
+            {isPickingLocation ? t.picking_location_hint : t.right_click_hint}
           </div>
         )}
       </div>
@@ -271,7 +299,11 @@ const App: React.FC = () => {
             lng={editorData.lng} 
             initialData={editorData.initial}
             onSave={handleSaveMemory}
-            onCancel={() => setShowEditorModal(false)}
+            onCancel={() => {
+              setShowEditorModal(false);
+              setIsPickingLocation(false);
+            }}
+            onRequestLocationChange={handleRequestLocationChange}
             lang={lang}
           />
         )}
