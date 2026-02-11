@@ -6,7 +6,7 @@ export const MAP_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/co
 
 // Auth Configuration
 // We use a fixed email for the admin account to keep the UI simple (Password only)
-export const ADMIN_EMAIL = "admin@wandermap.net";
+export const ADMIN_EMAIL = "muleizh@outlook.com";
 export const LOCAL_DEV_PASSWORD = "travel"; // Fallback for local dev without Supabase
 
 export const INITIAL_CENTER: [number, number] = [20, 0];
