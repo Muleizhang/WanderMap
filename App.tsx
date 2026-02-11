@@ -145,21 +145,21 @@ const App: React.FC = () => {
   };
 
   const handleDeleteMemory = async (id: string) => {
-    if (!confirm(t.delete_confirm)) {
-      return;
-    }
-    setIsLoading(true);
-    try {
-      const success = await storage.deleteMemory(id);
-      if (success) {
-        // Only update local state if the backend deletion was successful
-        setMemories(prev => prev.filter(m => m.id !== id));
-        setViewState({ type: 'MAP' });
+    const confirmed = confirm(t.delete_confirm);
+    if (confirmed) {
+      setIsLoading(true);
+      try {
+        const success = await storage.deleteMemory(id);
+        if (success) {
+          // Only update local state if the backend deletion was successful
+          setMemories(prev => prev.filter(m => m.id !== id));
+          setViewState({ type: 'MAP' });
+        }
+      } catch (error) {
+        console.error("Delete failed:", error);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error("Delete failed:", error);
-    } finally {
-      setIsLoading(false);
     }
   };
 

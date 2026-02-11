@@ -35,10 +35,6 @@ export const MemoryEditor: React.FC<MemoryEditorProps> = ({
   const [photos, setPhotos] = useState<Photo[]>(initialData?.photos || []);
   const [isProcessing, setIsProcessing] = useState(false);
   
-  // Use the prop values for current coordinates
-  const currentLat = lat;
-  const currentLng = lng;
-  
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -79,8 +75,8 @@ export const MemoryEditor: React.FC<MemoryEditorProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave({
-      lat: currentLat,
-      lng: currentLng,
+      lat,
+      lng,
       locationName: locationName || 'Unknown Location',
       description,
       photos,
@@ -97,7 +93,7 @@ export const MemoryEditor: React.FC<MemoryEditorProps> = ({
           </div>
           <div className="flex-1 text-sm text-slate-600">
             <p className="font-medium text-slate-900">{t.coordinates}</p>
-            <p>{currentLat.toFixed(6)}, {currentLng.toFixed(6)}</p>
+            <p>{lat.toFixed(6)}, {lng.toFixed(6)}</p>
           </div>
           {onRequestLocationChange && (
             <Button 

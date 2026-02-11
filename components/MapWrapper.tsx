@@ -18,7 +18,7 @@ const MARKER_SIZE = 80;
 // Custom Icon definition - now with showTitle parameter
 const createCustomIcon = (photoUrl?: string, title?: string, showTitle: boolean = false) => {
   const html = `
-    <div class="relative w-20 h-20 group cursor-pointer transition-transform hover:scale-110">
+    <div class="relative group cursor-pointer transition-transform hover:scale-110" style="width: ${MARKER_SIZE}px; height: ${MARKER_SIZE}px;">
       <div class="absolute inset-0 bg-white rounded-full shadow-lg border-2 border-white overflow-hidden z-10">
         ${photoUrl 
           ? `<img src="${photoUrl}" class="w-full h-full object-cover" />` 
