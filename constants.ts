@@ -1,0 +1,93 @@
+import { Language } from './types';
+
+// Map Configuration
+export const MAP_TILE_URL = "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
+export const MAP_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>';
+
+export const ADMIN_PASSWORD = "travel"; // Simple hardcoded password for demo purposes
+
+export const INITIAL_CENTER: [number, number] = [20, 0];
+export const INITIAL_ZOOM = 2;
+
+// Cloud Services Configuration
+// NOTE: Replace these with your actual keys from Supabase and Cloudinary dashboard
+export const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+export const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+
+export const CLOUDINARY_CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "demo"; // Replace 'demo' with your cloud name
+export const CLOUDINARY_UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "wandermap_preset"; // You must create an 'unsigned' preset in Cloudinary
+
+export const LOCAL_STORAGE_KEY = "wandermap_memories_v1";
+
+// Placeholder image for empty states
+export const PLACEHOLDER_IMG = "https://picsum.photos/400/300";
+
+// Translations
+export const TRANSLATIONS: Record<Language, Record<string, string>> = {
+  en: {
+    memories_count: "memories",
+    search_placeholder: "Search places...",
+    admin_mode: "Admin Mode",
+    login_to_edit: "Login to Edit",
+    right_click_hint: "Right-click to add memory",
+    admin_access: "Admin Access",
+    enter_password: "Enter the password to add or edit memories.",
+    password_placeholder: "Password",
+    hint: "Hint: Use \"travel\"",
+    cancel: "Cancel",
+    access: "Access",
+    edit_memory: "Edit Memory",
+    new_memory: "New Memory",
+    save_memory: "Save Memory",
+    processing: "Processing...",
+    upload_photos: "Upload Photos",
+    coordinates: "Coordinates",
+    location_name: "Location Name",
+    location_placeholder: "e.g., Eiffel Tower, Paris",
+    trip_date: "Trip Date",
+    thoughts: "Thoughts & Notes",
+    thoughts_placeholder: "What was memorable about this place?",
+    photos: "Photos",
+    caption_placeholder: "Caption for this photo...",
+    remove: "Remove",
+    photo_gallery: "Photo Gallery",
+    no_photos: "No photos added to this location yet.",
+    no_description: "No description added.",
+    delete_confirm: "Are you sure you want to delete this memory?",
+    login_alert: "Please login to add a memory to this location.",
+    incorrect_password: "Incorrect password. Hint: travel"
+  },
+  zh: {
+    memories_count: "条回忆",
+    search_placeholder: "搜索地点...",
+    admin_mode: "管理员模式",
+    login_to_edit: "登录编辑",
+    right_click_hint: "右键点击地图添加回忆",
+    admin_access: "管理员权限",
+    enter_password: "输入密码以添加或编辑回忆。",
+    password_placeholder: "密码",
+    hint: "提示：密码是 \"travel\"",
+    cancel: "取消",
+    access: "进入",
+    edit_memory: "编辑回忆",
+    new_memory: "新建回忆",
+    save_memory: "保存回忆",
+    processing: "处理中...",
+    upload_photos: "上传照片",
+    coordinates: "坐标",
+    location_name: "地点名称",
+    location_placeholder: "例如：北京故宫",
+    trip_date: "旅行日期",
+    thoughts: "想法与笔记",
+    thoughts_placeholder: "这个地方有什么难忘的？",
+    photos: "照片",
+    caption_placeholder: "照片描述...",
+    remove: "移除",
+    photo_gallery: "照片墙",
+    no_photos: "此地点暂无照片。",
+    no_description: "暂无描述。",
+    delete_confirm: "确定要删除这条回忆吗？",
+    login_alert: "请先登录以在此处添加回忆。",
+    incorrect_password: "密码错误。提示：travel"
+  }
+};

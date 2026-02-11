@@ -1,0 +1,5 @@
+{
+  "name": "WanderMap - Minimalist Travel Journal",
+  "description": "A flat-style, map-based travel journal. Pin locations, upload photos, and write thoughts about your journeys. Features password protection for editing and a responsive split-screen detail view.",
+  "requestFramePermissions": []
+}
