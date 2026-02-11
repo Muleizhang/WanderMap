@@ -80,9 +80,7 @@ export const MemoryDetail: React.FC<MemoryDetailProps> = ({
                   <Button variant="secondary" onClick={() => onEdit(memory)} className="!p-2">
                     <Edit2 size={18} />
                   </Button>
-                  <Button variant="danger" onClick={() => {
-                    if(confirm(t.delete_confirm)) onDelete(memory.id);
-                  }} className="!p-2">
+                  <Button variant="danger" onClick={() => onDelete(memory.id)} className="!p-2">
                     <Trash2 size={18} />
                   </Button>
                 </div>
