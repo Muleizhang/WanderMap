@@ -61,7 +61,10 @@ const isValidLatLng = (lat: any, lng: any): boolean => {
 const MapEvents: React.FC<{ onClick?: (lat: number, lng: number) => void }> = ({ onClick }) => {
   useMapEvents({
     contextmenu(e) {
-      if (onClick) onClick(e.latlng.lat, e.latlng.lng);
+      // Normalize longitude to be within -180 to 180 to save consistent data
+      // even if user clicks on a "wrapped" world instance
+      const wrappedLng = e.latlng.wrap().lng;
+      if (onClick) onClick(e.latlng.lat, wrappedLng);
     },
   });
   return null;
@@ -90,6 +93,13 @@ export const MapWrapper: React.FC<MapWrapperProps> = ({
     ? center 
     : INITIAL_CENTER;
 
+  // Limits for the Web Mercator projection (approx 85 degrees latitude)
+  // We use -Infinity/Infinity for longitude to allow infinite horizontal scrolling
+  const MAX_BOUNDS: L.LatLngBoundsExpression = [
+    [-85, -Infinity],
+    [85, Infinity]
+  ];
+
   return (
     <MapContainer 
       center={safeCenter} 
@@ -99,6 +109,10 @@ export const MapWrapper: React.FC<MapWrapperProps> = ({
       zoomControl={false}
       doubleClickZoom={interactive}
       className="w-full h-full z-0"
+      minZoom={2} // Prevent user from zooming out too far
+      maxBounds={MAX_BOUNDS} // Prevent user from panning vertically into the void
+      maxBoundsViscosity={1.0} // Hard stop at bounds
+      worldCopyJump={true} // Jump back to original world copy when panning horizontally so markers stay visible
     >
       <TileLayer attribution={MAP_ATTRIBUTION} url={MAP_TILE_URL} />
       <ZoomControl position="bottomright" />

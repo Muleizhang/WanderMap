@@ -28,6 +28,14 @@
       }
     </script>
     <style>
+      /* Ensure the root container fills the screen properly */
+      html, body, #root {
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+      }
+
       /* Custom scrollbar for webkit */
       ::-webkit-scrollbar {
         width: 6px;
@@ -48,6 +56,7 @@
         height: 100%;
         background: #f8fafc; /* slate-50 matches CartoDB positron nicely */
         outline: none;
+        z-index: 0;
       }
       /* Marker Label Animation */
       .marker-label {
@@ -56,6 +65,18 @@
       }
       .custom-map-marker:hover .marker-label {
         opacity: 1;
+      }
+      
+      /* 
+       * CRITICAL FIX: Tailwind sets img { max-width: 100% } which breaks Leaflet tiles.
+       * This forces Leaflet images to display at their native size.
+       */
+      .leaflet-pane img, 
+      .leaflet-tile, 
+      .leaflet-marker-icon, 
+      .leaflet-marker-shadow {
+        max-width: none !important;
+        max-height: none !important;
       }
     </style>
   <script type="importmap">
