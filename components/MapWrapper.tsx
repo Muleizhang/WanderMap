@@ -133,7 +133,8 @@ const DraggableMarker: React.FC<DraggableMarkerProps> = ({ memory, icon, onDrag,
         const marker = markerRef.current;
         if (marker != null) {
           const pos = marker.getLatLng();
-          // Normalize longitude to be within -180 to 180
+          // Normalize longitude to [-180, 180] range when marker crosses dateline
+          // The formula handles wrap-around: e.g., 190° becomes -170°, -200° becomes 160°
           const wrappedLng = ((pos.lng + 180) % 360 + 360) % 360 - 180;
           onDrag(pos.lat, wrappedLng);
         }

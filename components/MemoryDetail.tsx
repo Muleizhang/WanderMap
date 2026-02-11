@@ -193,7 +193,7 @@ export const MemoryDetail: React.FC<MemoryDetailProps> = ({
               <div className="grid grid-cols-1 gap-8">
                 {memory.photos.map((photo, idx) => (
                   <div key={photo.id} className="group space-y-3">
-                    <div className="relative overflow-hidden rounded-xl shadow-lg bg-slate-100 ring-1 ring-slate-900/5 aspect-video md:aspect-auto" style={{ maxWidth: '70%', margin: '0 auto' }}>
+                    <div className="relative overflow-hidden rounded-xl shadow-lg bg-slate-100 ring-1 ring-slate-900/5 aspect-video md:aspect-auto max-w-[70%] mx-auto">
                       <img 
                         src={photo.url} 
                         alt={photo.caption || `Photo ${idx + 1}`} 
