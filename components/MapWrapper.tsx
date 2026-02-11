@@ -14,10 +14,6 @@ L.Icon.Default.mergeOptions({
 
 // Custom Icon definition
 const createCustomIcon = (photoUrl?: string, title?: string) => {
-  // CRITICAL FIX:
-  // 1. Removed `-translate-x-1/2 -translate-y-full`. The `iconAnchor` handles the positioning.
-  // 2. The div is now 40x40. `iconAnchor: [20, 40]` means the bottom-center of this 40x40 box is placed at the coordinate.
-  // 3. Added a Title label that appears to the right.
   const html = `
     <div class="relative w-10 h-10 group cursor-pointer transition-transform hover:scale-110">
       <div class="absolute inset-0 bg-white rounded-full shadow-lg border-2 border-white overflow-hidden z-10">
@@ -58,6 +54,10 @@ interface MapWrapperProps {
   interactive?: boolean;
 }
 
+const isValidLatLng = (lat: any, lng: any): boolean => {
+  return typeof lat === 'number' && !isNaN(lat) && typeof lng === 'number' && !isNaN(lng);
+};
+
 const MapEvents: React.FC<{ onClick?: (lat: number, lng: number) => void }> = ({ onClick }) => {
   useMapEvents({
     contextmenu(e) {
@@ -70,7 +70,7 @@ const MapEvents: React.FC<{ onClick?: (lat: number, lng: number) => void }> = ({
 const MapController: React.FC<{ center?: [number, number]; zoom?: number }> = ({ center, zoom }) => {
   const map = useMap();
   useEffect(() => {
-    if (center) {
+    if (center && isValidLatLng(center[0], center[1])) {
       map.flyTo(center, zoom ?? map.getZoom(), { duration: 1.5 });
     }
   }, [center, zoom, map]);
@@ -85,9 +85,14 @@ export const MapWrapper: React.FC<MapWrapperProps> = ({
   zoom = INITIAL_ZOOM,
   interactive = true 
 }) => {
+  // Ensure center is valid, otherwise fallback to INITIAL_CENTER
+  const safeCenter: [number, number] = isValidLatLng(center[0], center[1]) 
+    ? center 
+    : INITIAL_CENTER;
+
   return (
     <MapContainer 
-      center={center} 
+      center={safeCenter} 
       zoom={zoom} 
       scrollWheelZoom={interactive} 
       dragging={interactive}
@@ -99,22 +104,27 @@ export const MapWrapper: React.FC<MapWrapperProps> = ({
       <ZoomControl position="bottomright" />
       
       {interactive && <MapEvents onClick={onMapClick} />}
-      <MapController center={center} zoom={zoom} />
+      <MapController center={safeCenter} zoom={zoom} />
 
-      {memories.map((memory) => (
-        <Marker
-          key={memory.id}
-          position={[memory.lat, memory.lng]}
-          icon={createCustomIcon(
-            memory.photos.length > 0 ? memory.photos[0].url : undefined,
-            memory.locationName
-          )}
-          eventHandlers={{
-            click: () => onMemoryClick(memory.id),
-          }}
-        >
-        </Marker>
-      ))}
+      {memories.map((memory) => {
+        // Skip invalid markers to prevent crash
+        if (!isValidLatLng(memory.lat, memory.lng)) return null;
+        
+        return (
+          <Marker
+            key={memory.id}
+            position={[memory.lat, memory.lng]}
+            icon={createCustomIcon(
+              memory.photos.length > 0 ? memory.photos[0].url : undefined,
+              memory.locationName
+            )}
+            eventHandlers={{
+              click: () => onMemoryClick(memory.id),
+            }}
+          >
+          </Marker>
+        );
+      })}
     </MapContainer>
   );
 };

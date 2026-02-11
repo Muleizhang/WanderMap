@@ -8,37 +8,71 @@ WanderMap 是一个极简风格的旅行记录网站。它基于世界地图，�
 - **照片墙**：在地图上的任意位置添加多张照片。
 - **双语支持**：支持中文和英文切换。
 - **极简设计**：平面化 UI 风格，专注于内容展示。
-- **简单鉴权**：通过简单的密码保护（默认密码：`travel`）来管理内容的增删改，未输入密码时仅供浏览。
+- **安全鉴权**：使用 Supabase Auth 进行后端验证，结合 RLS 策略保护数据安全。
 - **响应式设计**：完美支持桌面端和移动端，移动端采用分屏/弹窗模式。
 
 ---
 
 ## 🚀 部署指南 (Vercel + Supabase + Cloudinary)
 
-本项目完全适配 **Vercel** 部署。在部署前，你需要配置两个免费的云服务：**Supabase** (用于数据库) 和 **Cloudinary** (用于图片存储)。
+本项目完全适配 **Vercel** 部署。在部署前，你需要配置两个免费的云服务：**Supabase** (用于数据库和鉴权) 和 **Cloudinary** (用于图片存储)。
 
-### 第一步：配置 Supabase (数据库)
+### 第一步：配置 Supabase (数据库 & 鉴权)
 
 1. 访问 [Supabase](https://supabase.com/) 并注册/登录。
 2. 点击 **"New Project"** 创建一个新项目。
-3. 项目创建完成后，进入项目面板，点击左侧菜单的 **SQL Editor**。
-4. 点击 **New query**，粘贴以下 SQL 代码并点击 **Run** 以创建数据表：
+3. **创建数据表**：
+   进入 **SQL Editor**，粘贴以下代码并运行：
 
-```sql
-create table memories (
-  id text primary key,
-  lat float8,
-  lng float8,
-  "locationName" text,
-  description text,
-  photos jsonb,
-  date int8,
-  "createdAt" int8
-);
-```
+   ```sql
+   -- 1. 创建 memories 表
+   create table memories (
+     id text primary key,
+     lat float8,
+     lng float8,
+     "locationName" text,
+     description text,
+     photos jsonb,
+     date int8,
+     "createdAt" int8
+   );
 
-5. 点击左侧菜单的 **Project Settings (齿轮图标) -> API**。
-6. 找到 **Project URL** 和 **anon / public** Key，复制备用。
+   -- 2. 开启 Row Level Security (RLS) 安全策略
+   alter table memories enable row level security;
+
+   -- 3. 允许所有人（匿名）读取数据
+   create policy "Public memories are viewable by everyone"
+   on memories for select
+   to anon
+   using (true);
+
+   -- 4. 仅允许登录用户进行增删改
+   create policy "Authenticated users can insert memories"
+   on memories for insert
+   to authenticated
+   with check (true);
+
+   create policy "Authenticated users can update memories"
+   on memories for update
+   to authenticated
+   using (true);
+
+   create policy "Authenticated users can delete memories"
+   on memories for delete
+   to authenticated
+   using (true);
+   ```
+
+4. **配置管理员账户**：
+   - 点击左侧菜单的 **Authentication** -> **Users**。
+   - 点击 **Add User** -> **Create New User**。
+   - **Email**: 输入 `admin@wandermap.net` (注意：必须使用此邮箱，代码中已绑定)。
+   - **Password**: 设置一个只有你自己知道的密码。
+   - 点击 **Create User**。
+
+5. **获取 API Key**：
+   - 点击左侧菜单的 **Project Settings (齿轮图标) -> API**。
+   - 找到 **Project URL** 和 **anon / public** Key，复制备用。
 
 ### 第二步：配置 Cloudinary (图片存储)
 
@@ -88,21 +122,16 @@ create table memories (
    ```
 
 3. 创建环境变量文件：
-   在根目录创建一个 `.env` 文件，填入上述的环境变量（注意：本地开发不需要加 `VITE_` 前缀是旧习惯，但本项目基于 Vite，**必须**加 `VITE_` 前缀）：
+   在根目录创建一个 `.env` 文件，填入上述的环境变量。
+   *如果不配置 Supabase 变量，项目将进入本地演示模式，密码默认为 `travel`，数据仅存储在浏览器缓存中。*
    ```env
-   VITE_SUPABASE_URL=你的URL
-   VITE_SUPABASE_ANON_KEY=你的Key
-   VITE_CLOUDINARY_CLOUD_NAME=你的CloudName
-   VITE_CLOUDINARY_UPLOAD_PRESET=你的PresetName
+   VITE_SUPABASE_URL=...
+   VITE_SUPABASE_ANON_KEY=...
+   VITE_CLOUDINARY_CLOUD_NAME=...
+   VITE_CLOUDINARY_UPLOAD_PRESET=...
    ```
 
 4. 启动开发服务器：
    ```bash
    npm run dev
    ```
-
-## 🔑 管理员密码
-
-默认的编辑密码是：`travel`
-
-可以在 `constants.ts` 文件中修改 `ADMIN_PASSWORD` 常量来更改密码。注意：由于是纯前端鉴权，此密码主要防君子不防小人，适合个人或小范围分享使用。

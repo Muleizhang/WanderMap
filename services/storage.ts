@@ -5,7 +5,9 @@ import {
   SUPABASE_ANON_KEY, 
   CLOUDINARY_CLOUD_NAME, 
   CLOUDINARY_UPLOAD_PRESET,
-  LOCAL_STORAGE_KEY 
+  LOCAL_STORAGE_KEY,
+  ADMIN_EMAIL,
+  LOCAL_DEV_PASSWORD
 } from '../constants';
 
 // --- Supabase Client Setup ---
@@ -14,8 +16,65 @@ const supabase = isSupabaseConfigured
   ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY) 
   : null;
 
+// --- Authentication Functions ---
+
+export const login = async (password: string): Promise<{ success: boolean; error?: string }> => {
+  if (!supabase) {
+    // Local Dev Fallback (Mock Auth)
+    console.warn("Supabase not configured. Using local dev password.");
+    return password === LOCAL_DEV_PASSWORD
+      ? { success: true }
+      : { success: false, error: 'Incorrect password (Local Dev)' };
+  }
+
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: ADMIN_EMAIL,
+      password: password
+    });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    return { success: true };
+  } catch (e: any) {
+    return { success: false, error: e.message || 'Login failed' };
+  }
+};
+
+export const logout = async () => {
+  if (!supabase) return;
+  await supabase.auth.signOut();
+};
+
+export const checkSession = async (): Promise<boolean> => {
+  if (!supabase) return false;
+  const { data } = await supabase.auth.getSession();
+  return !!data.session;
+};
+
+export const onAuthStateChange = (callback: (isAuthenticated: boolean) => void) => {
+  if (!supabase) return () => {};
+  
+  const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    callback(!!session);
+  });
+
+  return () => subscription.unsubscribe();
+};
+
 // --- Helper Functions ---
 const generateId = () => Math.random().toString(36).substr(2, 9);
+
+// Validate Memory Object
+const isValidMemory = (m: any): boolean => {
+  return (
+    m &&
+    typeof m.lat === 'number' && !isNaN(m.lat) &&
+    typeof m.lng === 'number' && !isNaN(m.lng) &&
+    m.id
+  );
+};
 
 // --- Cloudinary Upload ---
 export const uploadImage = async (file: File): Promise<string> => {
@@ -106,7 +165,8 @@ export const fileToBase64 = (file: File): Promise<string> => {
 const getLocalMemories = (): Memory[] => {
   try {
     const data = localStorage.getItem(LOCAL_STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
+    const parsed = data ? JSON.parse(data) : [];
+    return Array.isArray(parsed) ? parsed.filter(isValidMemory) : [];
   } catch (e) {
     return [];
   }
@@ -138,18 +198,23 @@ export const getMemories = async (): Promise<Memory[]> => {
       console.error("Supabase fetch error:", error);
       return getLocalMemories();
     }
-    return data as Memory[] || [];
+    const memories = data as Memory[] || [];
+    return memories.filter(isValidMemory);
   }
   return getLocalMemories();
 };
 
 export const addMemory = async (memory: Memory): Promise<void> => {
+  if (!isValidMemory(memory)) {
+    console.error("Attempted to add invalid memory:", memory);
+    return;
+  }
+  
   if (supabase) {
     const { error } = await supabase.from('memories').insert([memory]);
     if (error) {
       console.error("Supabase insert error:", error);
-      alert("Failed to save to cloud database. Attempting local backup.");
-      saveLocalMemories([...getLocalMemories(), memory]);
+      alert("Failed to save to cloud database. Please ensure you are logged in and have permission.");
     }
   } else {
     saveLocalMemories([...getLocalMemories(), memory]);
@@ -157,6 +222,11 @@ export const addMemory = async (memory: Memory): Promise<void> => {
 };
 
 export const updateMemory = async (memory: Memory): Promise<void> => {
+  if (!isValidMemory(memory)) {
+    console.error("Attempted to update invalid memory:", memory);
+    return;
+  }
+
   if (supabase) {
     const { error } = await supabase
       .from('memories')
@@ -165,7 +235,7 @@ export const updateMemory = async (memory: Memory): Promise<void> => {
       
     if (error) {
       console.error("Supabase update error:", error);
-      alert("Failed to update cloud database.");
+      alert("Failed to update cloud database. Please ensure you are logged in and have permission.");
     }
   } else {
     const memories = getLocalMemories().map(m => m.id === memory.id ? memory : m);
@@ -176,7 +246,10 @@ export const updateMemory = async (memory: Memory): Promise<void> => {
 export const deleteMemory = async (id: string): Promise<void> => {
   if (supabase) {
     const { error } = await supabase.from('memories').delete().eq('id', id);
-    if (error) console.error("Supabase delete error:", error);
+    if (error) {
+      console.error("Supabase delete error:", error);
+      alert("Failed to delete from cloud. Please ensure you are logged in and have permission.");
+    }
   } else {
     const memories = getLocalMemories().filter(m => m.id !== id);
     saveLocalMemories(memories);

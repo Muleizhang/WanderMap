@@ -3,7 +3,7 @@ import { Language, Memory } from '../types';
 import { MapWrapper } from './MapWrapper';
 import { ArrowLeft, Calendar, MapPin, Trash2, Edit2, Image as ImageIcon } from 'lucide-react';
 import { Button } from './UI';
-import { TRANSLATIONS } from '../constants';
+import { TRANSLATIONS, INITIAL_CENTER } from '../constants';
 
 interface MemoryDetailProps {
   memory: Memory;
@@ -30,6 +30,11 @@ export const MemoryDetail: React.FC<MemoryDetailProps> = ({
     day: 'numeric'
   });
 
+  const isValidCoord = (n: number) => typeof n === 'number' && !isNaN(n);
+  const safeCenter: [number, number] = (isValidCoord(memory.lat) && isValidCoord(memory.lng))
+    ? [memory.lat, memory.lng]
+    : INITIAL_CENTER;
+
   return (
     <div className="fixed inset-0 bg-white z-[50] flex flex-col lg:flex-row animate-in fade-in duration-300">
       {/* Left: Map (Top on Mobile) */}
@@ -37,7 +42,7 @@ export const MemoryDetail: React.FC<MemoryDetailProps> = ({
         <MapWrapper 
           memories={[memory]} 
           onMemoryClick={() => {}} // Do nothing when clicking self
-          center={[memory.lat, memory.lng]} 
+          center={safeCenter} 
           zoom={13} 
           interactive={false}
         />
@@ -61,7 +66,7 @@ export const MemoryDetail: React.FC<MemoryDetailProps> = ({
                 <div className="flex items-center gap-4 text-slate-500 text-sm font-medium">
                   <span className="flex items-center gap-1">
                     <MapPin size={14} />
-                    {memory.lat.toFixed(4)}, {memory.lng.toFixed(4)}
+                    {isValidCoord(memory.lat) ? memory.lat.toFixed(4) : '?'}, {isValidCoord(memory.lng) ? memory.lng.toFixed(4) : '?'}
                   </span>
                   <span className="flex items-center gap-1">
                     <Calendar size={14} />

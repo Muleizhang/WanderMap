@@ -4,7 +4,10 @@ import { Language } from './types';
 export const MAP_TILE_URL = "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
 export const MAP_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>';
 
-export const ADMIN_PASSWORD = "travel"; // Simple hardcoded password for demo purposes
+// Auth Configuration
+// We use a fixed email for the admin account to keep the UI simple (Password only)
+export const ADMIN_EMAIL = "admin@wandermap.net";
+export const LOCAL_DEV_PASSWORD = "travel"; // Fallback for local dev without Supabase
 
 export const INITIAL_CENTER: [number, number] = [20, 0];
 export const INITIAL_ZOOM = 2;
@@ -43,7 +46,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     admin_access: "Admin Access",
     enter_password: "Enter the password to add or edit memories.",
     password_placeholder: "Password",
-    hint: "Hint: Use \"travel\"",
+    hint: "Hint: Use the password you set in Supabase",
     cancel: "Cancel",
     access: "Access",
     edit_memory: "Edit Memory",
@@ -65,7 +68,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     no_description: "No description added.",
     delete_confirm: "Are you sure you want to delete this memory?",
     login_alert: "Please login to add a memory to this location.",
-    incorrect_password: "Incorrect password. Hint: travel"
+    incorrect_password: "Incorrect password or login failed."
   },
   zh: {
     memories_count: "条回忆",
@@ -76,7 +79,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     admin_access: "管理员权限",
     enter_password: "输入密码以添加或编辑回忆。",
     password_placeholder: "密码",
-    hint: "提示：密码是 \"travel\"",
+    hint: "提示：使用您在 Supabase 设置的密码",
     cancel: "取消",
     access: "进入",
     edit_memory: "编辑回忆",
@@ -98,6 +101,6 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     no_description: "暂无描述。",
     delete_confirm: "确定要删除这条回忆吗？",
     login_alert: "请先登录以在此处添加回忆。",
-    incorrect_password: "密码错误。提示：travel"
+    incorrect_password: "密码错误或登录失败。"
   }
 };

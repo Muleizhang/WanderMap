@@ -4,9 +4,9 @@ import { MapWrapper } from './components/MapWrapper';
 import { MemoryDetail } from './components/MemoryDetail';
 import { MemoryEditor } from './components/MemoryEditor';
 import { Button, Modal, Input } from './components/UI';
-import { Lock, Unlock, Map as MapIcon, Plus, Search, Cloud, RefreshCw, Globe } from 'lucide-react';
+import { Lock, Unlock, Map as MapIcon, Plus, Search, Cloud, RefreshCw, Globe, Loader2 } from 'lucide-react';
 import * as storage from './services/storage';
-import { ADMIN_PASSWORD, TRANSLATIONS } from './constants';
+import { TRANSLATIONS } from './constants';
 
 const App: React.FC = () => {
   // State
@@ -18,6 +18,7 @@ const App: React.FC = () => {
   const [showEditorModal, setShowEditorModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [lang, setLang] = useState<Language>('en');
 
   const t = TRANSLATIONS[lang];
@@ -32,17 +33,28 @@ const App: React.FC = () => {
     setIsLoading(false);
   }, []);
 
-  // Load data on mount & subscribe to realtime changes
+  // Load data on mount & subscribe to realtime changes & auth state
   useEffect(() => {
     fetchMemories();
     
-    // Subscribe to global updates (Supabase)
-    const unsubscribe = storage.subscribeToMemories(() => {
+    // Check initial session
+    storage.checkSession().then(isAuth => {
+      if (isAuth) setIsAuthenticated(true);
+    });
+
+    // Subscribe to auth changes (e.g. timeout, multi-tab logout)
+    const authUnsubscribe = storage.onAuthStateChange((isAuth) => {
+      setIsAuthenticated(isAuth);
+    });
+    
+    // Subscribe to global DB updates (Supabase)
+    const dbUnsubscribe = storage.subscribeToMemories(() => {
       fetchMemories();
     });
 
     return () => {
-      unsubscribe();
+      authUnsubscribe();
+      dbUnsubscribe();
     };
   }, [fetchMemories]);
 
@@ -57,9 +69,15 @@ const App: React.FC = () => {
   }, [memories, searchQuery]);
 
   // Handlers
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (passwordInput === ADMIN_PASSWORD) {
+    setIsLoggingIn(true);
+    
+    const result = await storage.login(passwordInput);
+    
+    setIsLoggingIn(false);
+
+    if (result.success) {
       setIsAuthenticated(true);
       setShowAuthModal(false);
       setPasswordInput('');
@@ -68,7 +86,8 @@ const App: React.FC = () => {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await storage.logout();
     setIsAuthenticated(false);
   };
 
@@ -139,7 +158,7 @@ const App: React.FC = () => {
                 WanderMap
               </h1>
               <div className="flex items-center gap-2">
-                {isLoading && <RefreshCw size={14} className="animate-spin text-slate-400" />}
+                {(isLoading || isLoggingIn) && <RefreshCw size={14} className="animate-spin text-slate-400" />}
                 <p className="text-xs text-slate-500 font-medium">
                   {memories.length} {t.memories_count}
                 </p>
@@ -229,10 +248,13 @@ const App: React.FC = () => {
             value={passwordInput}
             onChange={e => setPasswordInput(e.target.value)}
             autoFocus
+            disabled={isLoggingIn}
           />
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="ghost" onClick={() => setShowAuthModal(false)}>{t.cancel}</Button>
-            <Button type="submit">{t.access}</Button>
+            <Button type="button" variant="ghost" onClick={() => setShowAuthModal(false)} disabled={isLoggingIn}>{t.cancel}</Button>
+            <Button type="submit" disabled={isLoggingIn}>
+              {isLoggingIn ? <Loader2 className="animate-spin" size={18} /> : t.access}
+            </Button>
           </div>
           <p className="text-xs text-slate-400 text-center mt-2">{t.hint}</p>
         </form>
