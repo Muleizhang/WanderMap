@@ -72,8 +72,25 @@ const MapEvents: React.FC<{ onClick?: (lat: number, lng: number) => void }> = ({
 
 const MapController: React.FC<{ center?: [number, number]; zoom?: number }> = ({ center, zoom }) => {
   const map = useMap();
+
+  // CRITICAL FIX: Invalidate map size on mount to ensure tiles load correctly
+  // This fixes the issue where the map has white gaps on initial load/refresh
+  useEffect(() => {
+    // Initial invalidation
+    map.invalidateSize();
+    
+    // Delayed invalidation to handle any flexbox layout shifts
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [map]);
+
   useEffect(() => {
     if (center && isValidLatLng(center[0], center[1])) {
+      // Use flyTo for smooth transitions, but ensure we don't spam it
+      // The dependency array handles checks, but checking distance might be good optimization later
       map.flyTo(center, zoom ?? map.getZoom(), { duration: 1.5 });
     }
   }, [center, zoom, map]);
@@ -108,13 +125,18 @@ export const MapWrapper: React.FC<MapWrapperProps> = ({
       dragging={interactive}
       zoomControl={false}
       doubleClickZoom={interactive}
-      className="w-full h-full z-0"
+      className="w-full h-full z-0 outline-none"
       minZoom={2} // Prevent user from zooming out too far
       maxBounds={MAX_BOUNDS} // Prevent user from panning vertically into the void
       maxBoundsViscosity={1.0} // Hard stop at bounds
       worldCopyJump={true} // Jump back to original world copy when panning horizontally so markers stay visible
     >
-      <TileLayer attribution={MAP_ATTRIBUTION} url={MAP_TILE_URL} />
+      <TileLayer 
+        attribution={MAP_ATTRIBUTION} 
+        url={MAP_TILE_URL} 
+        // Ensure tiles load even if map thinks it's small initially
+        className="map-tiles"
+      />
       <ZoomControl position="bottomright" />
       
       {interactive && <MapEvents onClick={onMapClick} />}
