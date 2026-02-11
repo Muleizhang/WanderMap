@@ -245,12 +245,39 @@ export const updateMemory = async (memory: Memory): Promise<void> => {
 
 export const deleteMemory = async (id: string): Promise<boolean> => {
   if (supabase) {
-    const { error } = await supabase.from('memories').delete().eq('id', id);
+    // First, attempt the delete
+    const { error } = await supabase
+      .from('memories')
+      .delete()
+      .eq('id', id);
+    
     if (error) {
       console.error("Supabase delete error:", error);
       alert("Failed to delete from cloud. Please ensure you are logged in and have permission.");
       return false;
     }
+    
+    // Verify the record was actually deleted by checking if it still exists
+    const { data: checkData, error: checkError } = await supabase
+      .from('memories')
+      .select('id')
+      .eq('id', id)
+      .single();
+    
+    // PGRST116 error code means "no rows returned" - this is expected after successful deletion
+    // If we get data back, the record still exists (deletion failed, likely due to RLS)
+    // If we get a different error (not PGRST116), something unexpected happened
+    if (checkError && checkError.code !== 'PGRST116') {
+      console.error("Error verifying deletion:", checkError);
+      // Continue anyway since the delete itself didn't error
+    }
+    
+    if (checkData) {
+      console.error("Delete appeared to succeed but record still exists - likely RLS issue");
+      alert("Failed to delete. Please ensure you have the correct permissions configured in Supabase RLS policies.");
+      return false;
+    }
+    
     return true;
   } else {
     const memories = getLocalMemories().filter(m => m.id !== id);

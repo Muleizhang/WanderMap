@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents, ZoomControl } from 'react-leaflet';
 import L from 'leaflet';
 import { Memory } from '../types';
@@ -15,11 +15,11 @@ L.Icon.Default.mergeOptions({
 // Marker size: doubled from 40x40 to 80x80
 const MARKER_SIZE = 80;
 
-// Custom Icon definition - now with showTitle parameter
-const createCustomIcon = (photoUrl?: string, title?: string, showTitle: boolean = false) => {
+// Custom Icon definition - now with showTitle parameter and draggable styling
+const createCustomIcon = (photoUrl?: string, title?: string, showTitle: boolean = false, isDraggable: boolean = false) => {
   const html = `
     <div class="relative group cursor-pointer transition-transform hover:scale-110" style="width: ${MARKER_SIZE}px; height: ${MARKER_SIZE}px;">
-      <div class="absolute inset-0 bg-white rounded-full shadow-lg border-2 border-white overflow-hidden z-10">
+      <div class="absolute inset-0 bg-white rounded-full shadow-lg border-2 ${isDraggable ? 'border-primary ring-4 ring-primary/30' : 'border-white'} overflow-hidden z-10">
         ${photoUrl 
           ? `<img src="${photoUrl}" class="w-full h-full object-cover" />` 
           : `<div class="w-full h-full bg-primary flex items-center justify-center">
@@ -28,7 +28,7 @@ const createCustomIcon = (photoUrl?: string, title?: string, showTitle: boolean 
         }
       </div>
       <!-- Pointer Tip -->
-      <div class="absolute -bottom-1.5 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-white rotate-45 shadow-sm z-0"></div>
+      <div class="absolute -bottom-1.5 left-1/2 transform -translate-x-1/2 w-4 h-4 ${isDraggable ? 'bg-primary' : 'bg-white'} rotate-45 shadow-sm z-0"></div>
       
       <!-- Title Label: always visible when showTitle is true, otherwise only on hover -->
       ${title ? `
@@ -55,6 +55,8 @@ interface MapWrapperProps {
   center?: [number, number];
   zoom?: number;
   interactive?: boolean;
+  draggableMarker?: boolean;
+  onMarkerDrag?: (lat: number, lng: number) => void;
 }
 
 const isValidLatLng = (lat: any, lng: any): boolean => {
@@ -114,6 +116,45 @@ const MapController: React.FC<{ center?: [number, number]; zoom?: number }> = ({
   return null;
 };
 
+// Draggable Marker Component
+interface DraggableMarkerProps {
+  memory: Memory;
+  icon: L.DivIcon;
+  onDrag: (lat: number, lng: number) => void;
+  onClick: () => void;
+}
+
+const DraggableMarker: React.FC<DraggableMarkerProps> = ({ memory, icon, onDrag, onClick }) => {
+  const markerRef = useRef<L.Marker>(null);
+  
+  const eventHandlers = useMemo(
+    () => ({
+      dragend() {
+        const marker = markerRef.current;
+        if (marker != null) {
+          const pos = marker.getLatLng();
+          // Normalize longitude to [-180, 180] range when marker crosses dateline
+          // The formula handles wrap-around: e.g., 190° becomes -170°, -200° becomes 160°
+          const wrappedLng = ((pos.lng + 180) % 360 + 360) % 360 - 180;
+          onDrag(pos.lat, wrappedLng);
+        }
+      },
+      click: onClick,
+    }),
+    [onDrag, onClick]
+  );
+
+  return (
+    <Marker
+      ref={markerRef}
+      position={[memory.lat, memory.lng]}
+      icon={icon}
+      draggable={true}
+      eventHandlers={eventHandlers}
+    />
+  );
+};
+
 // Zoom threshold for showing titles: province level is around zoom 8 or less
 const TITLE_SHOW_ZOOM_THRESHOLD = 8;
 
@@ -123,7 +164,9 @@ export const MapWrapper: React.FC<MapWrapperProps> = ({
   onMemoryClick,
   center = INITIAL_CENTER,
   zoom = INITIAL_ZOOM,
-  interactive = true 
+  interactive = true,
+  draggableMarker = false,
+  onMarkerDrag
 }) => {
   const [currentZoom, setCurrentZoom] = useState(zoom);
   
@@ -151,7 +194,7 @@ export const MapWrapper: React.FC<MapWrapperProps> = ({
       zoomControl={false}
       doubleClickZoom={interactive}
       className="w-full h-full z-0 outline-none"
-      minZoom={2} // Prevent user from zooming out too far
+      minZoom={3} // Prevent user from zooming out too far (avoid white edges at high latitudes)
       maxBounds={MAX_BOUNDS} // Prevent user from panning vertically into the void
       maxBoundsViscosity={1.0} // Hard stop at bounds
       worldCopyJump={true} // Jump back to original world copy when panning horizontally so markers stay visible
@@ -171,15 +214,31 @@ export const MapWrapper: React.FC<MapWrapperProps> = ({
         // Skip invalid markers to prevent crash
         if (!isValidLatLng(memory.lat, memory.lng)) return null;
         
+        const icon = createCustomIcon(
+          memory.photos.length > 0 ? memory.photos[0].url : undefined,
+          memory.locationName,
+          showTitles,
+          draggableMarker
+        );
+        
+        // Use draggable marker if enabled
+        if (draggableMarker && onMarkerDrag) {
+          return (
+            <DraggableMarker
+              key={memory.id}
+              memory={memory}
+              icon={icon}
+              onDrag={onMarkerDrag}
+              onClick={() => onMemoryClick(memory.id)}
+            />
+          );
+        }
+        
         return (
           <Marker
             key={memory.id}
             position={[memory.lat, memory.lng]}
-            icon={createCustomIcon(
-              memory.photos.length > 0 ? memory.photos[0].url : undefined,
-              memory.locationName,
-              showTitles
-            )}
+            icon={icon}
             eventHandlers={{
               click: () => onMemoryClick(memory.id),
             }}

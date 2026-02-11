@@ -167,6 +167,25 @@ const App: React.FC = () => {
     setViewState({ type: 'DETAIL', memoryId: id });
   };
 
+  const handleUpdatePosition = async (memory: Memory, newLat: number, newLng: number) => {
+    setIsLoading(true);
+    try {
+      const updated: Memory = {
+        ...memory,
+        lat: newLat,
+        lng: newLng
+      };
+      await storage.updateMemory(updated);
+      
+      // Optimistic update for UI responsiveness
+      setMemories(prev => prev.map(m => m.id === updated.id ? updated : m));
+    } catch (error) {
+      console.error("Position update failed:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const toggleLanguage = () => {
     setLang(prev => prev === 'en' ? 'zh' : 'en');
   };
@@ -258,6 +277,7 @@ const App: React.FC = () => {
             setEditorData({ lat: memory.lat, lng: memory.lng, initial: memory });
             setShowEditorModal(true);
           }}
+          onUpdatePosition={handleUpdatePosition}
           lang={lang}
         />
       )}

@@ -10,7 +10,7 @@ export const ADMIN_EMAIL = "muleizh@outlook.com";
 export const LOCAL_DEV_PASSWORD = "travel"; // Fallback for local dev without Supabase
 
 export const INITIAL_CENTER: [number, number] = [20, 0];
-export const INITIAL_ZOOM = 2;
+export const INITIAL_ZOOM = 3;
 
 // Cloud Services Configuration
 // NOTE: These are pulled from Vercel Environment Variables
@@ -71,7 +71,10 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     incorrect_password: "Incorrect password or login failed.",
     change_location: "Change",
     change_location_hint: "Right-click on the map to select a new location",
-    picking_location_hint: "Right-click to select a new location"
+    picking_location_hint: "Right-click to select a new location",
+    adjust_position: "Adjust Position",
+    drag_marker_hint: "Drag the marker to a new location",
+    confirm_position: "Confirm"
   },
   zh: {
     memories_count: "条回忆",
@@ -107,6 +110,9 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     incorrect_password: "密码错误或登录失败。",
     change_location: "更改",
     change_location_hint: "右键点击地图选择新位置",
-    picking_location_hint: "右键点击选择新位置"
+    picking_location_hint: "右键点击选择新位置",
+    adjust_position: "调整位置",
+    drag_marker_hint: "拖动标记到新位置",
+    confirm_position: "确认"
   }
 };
