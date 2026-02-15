@@ -40,10 +40,10 @@ WanderMap 是一个极简风格的旅行记录网站。它基于世界地图，�
    -- 2. 开启 Row Level Security (RLS) 安全策略
    alter table memories enable row level security;
 
-   -- 3. 允许所有人（匿名）读取数据
-   create policy "Public memories are viewable by everyone"
+   -- 3. 允许所有人（匿名和登录用户）读取数据
+   create policy "Memories are viewable by everyone"
    on memories for select
-   to anon
+   to public
    using (true);
 
    -- 4. 仅允许登录用户进行增删改
