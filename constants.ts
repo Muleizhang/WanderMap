@@ -74,7 +74,10 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     picking_location_hint: "Right-click to select a new location",
     adjust_position: "Adjust Position",
     drag_marker_hint: "Drag the marker to a new location",
-    confirm_position: "Confirm"
+    confirm_position: "Confirm",
+    album_view: "Album",
+    back_to_map: "Map",
+    no_memories: "No memories yet. Start by adding your first memory!"
   },
   zh: {
     memories_count: "条回忆",
@@ -113,6 +116,9 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     picking_location_hint: "右键点击选择新位置",
     adjust_position: "调整位置",
     drag_marker_hint: "拖动标记到新位置",
-    confirm_position: "确认"
+    confirm_position: "确认",
+    album_view: "专辑",
+    back_to_map: "地图",
+    no_memories: "暂无回忆。开始添加您的第一条回忆吧！"
   }
 };

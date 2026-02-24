@@ -3,8 +3,9 @@ import { Memory, ViewState, Language } from './types';
 import { MapWrapper } from './components/MapWrapper';
 import { MemoryDetail } from './components/MemoryDetail';
 import { MemoryEditor } from './components/MemoryEditor';
+import { AlbumView } from './components/AlbumView';
 import { Button, Modal, Input } from './components/UI';
-import { Lock, Unlock, Map as MapIcon, Plus, Search, Cloud, RefreshCw, Globe, Loader2 } from 'lucide-react';
+import { Lock, Unlock, Map as MapIcon, Plus, Search, Cloud, RefreshCw, Globe, Loader2, LayoutGrid, Map } from 'lucide-react';
 import * as storage from './services/storage';
 import { TRANSLATIONS } from './constants';
 
@@ -230,6 +231,26 @@ const App: React.FC = () => {
         {/* Action Buttons */}
         <div className="self-end sm:self-auto flex flex-col items-end gap-2">
           <div className="pointer-events-auto flex items-center gap-2">
+            {/* Album View Toggle */}
+            <Button
+              variant={viewState.type === 'ALBUM' ? 'primary' : 'secondary'}
+              onClick={() => setViewState(viewState.type === 'ALBUM' ? { type: 'MAP' } : { type: 'ALBUM' })}
+              className="shadow-lg backdrop-blur bg-white/90"
+              title={viewState.type === 'ALBUM' ? t.back_to_map : (t.album_view || 'Album View')}
+            >
+              {viewState.type === 'ALBUM' ? (
+                <>
+                  <Map size={16} />
+                  <span className="hidden sm:inline">{t.back_to_map || 'Map'}</span>
+                </>
+              ) : (
+                <>
+                  <LayoutGrid size={16} />
+                  <span className="hidden sm:inline">{t.album_view || 'Album'}</span>
+                </>
+              )}
+            </Button>
+
             {/* Language Toggle */}
             <Button variant="secondary" onClick={toggleLanguage} className="shadow-lg backdrop-blur bg-white/90 px-3">
               <Globe size={16} />
@@ -254,11 +275,13 @@ const App: React.FC = () => {
 
       {/* Main Content Area */}
       <div className="flex-1 relative">
-        <MapWrapper 
-          memories={filteredMemories} 
-          onMapClick={handleMapClick}
-          onMemoryClick={handleOpenDetail}
-        />
+        {viewState.type !== 'ALBUM' && (
+          <MapWrapper
+            memories={filteredMemories}
+            onMapClick={handleMapClick}
+            onMemoryClick={handleOpenDetail}
+          />
+        )}
         
         {/* Hint Overlay if logged in */}
         {isAuthenticated && viewState.type === 'MAP' && (
@@ -270,8 +293,8 @@ const App: React.FC = () => {
 
       {/* Detail View Overlay */}
       {viewState.type === 'DETAIL' && (
-        <MemoryDetail 
-          memory={memories.find(m => m.id === viewState.memoryId)!} 
+        <MemoryDetail
+          memory={memories.find(m => m.id === viewState.memoryId)!}
           onBack={() => setViewState({ type: 'MAP' })}
           isAuthenticated={isAuthenticated}
           onDelete={handleDeleteMemory}
@@ -280,6 +303,16 @@ const App: React.FC = () => {
             setShowEditorModal(true);
           }}
           onUpdatePosition={handleUpdatePosition}
+          lang={lang}
+        />
+      )}
+
+      {/* Album View Overlay */}
+      {viewState.type === 'ALBUM' && (
+        <AlbumView
+          memories={filteredMemories}
+          onMemoryClick={handleOpenDetail}
+          onBack={() => setViewState({ type: 'MAP' })}
           lang={lang}
         />
       )}
