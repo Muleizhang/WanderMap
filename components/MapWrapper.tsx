@@ -156,7 +156,7 @@ const DraggableMarker: React.FC<DraggableMarkerProps> = ({ memory, icon, onDrag,
 };
 
 // Zoom threshold for showing titles: province level is around zoom 8 or less
-const TITLE_SHOW_ZOOM_THRESHOLD = 8;
+const TITLE_SHOW_ZOOM_THRESHOLD = 6;
 
 export const MapWrapper: React.FC<MapWrapperProps> = ({ 
   memories, 
@@ -170,8 +170,8 @@ export const MapWrapper: React.FC<MapWrapperProps> = ({
 }) => {
   const [currentZoom, setCurrentZoom] = useState(zoom);
   
-  // Show titles when zoomed out to province level or less
-  const showTitles = currentZoom <= TITLE_SHOW_ZOOM_THRESHOLD;
+  // Show titles when zoomed out to province level or more
+  const showTitles = currentZoom >= TITLE_SHOW_ZOOM_THRESHOLD;
   
   // Ensure center is valid, otherwise fallback to INITIAL_CENTER
   const safeCenter: [number, number] = isValidLatLng(center[0], center[1]) 
