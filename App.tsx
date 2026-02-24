@@ -199,10 +199,10 @@ const App: React.FC = () => {
         {/* Logo & Search Block */}
         <div className="flex flex-col gap-2 w-full sm:w-auto">
           <div className="bg-white/90 backdrop-blur shadow-md rounded-xl p-3 pointer-events-auto border border-white/50 w-full sm:w-[320px]">
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-1">
               <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                 <MapIcon className="text-primary" />
-                WanderMap
+                Key & Muleizh
               </h1>
               <div className="flex items-center gap-2">
                 {(isLoading || isLoggingIn) && <RefreshCw size={14} className="animate-spin text-slate-400" />}
@@ -211,6 +211,7 @@ const App: React.FC = () => {
                 </p>
               </div>
             </div>
+            <p className="text-xs text-slate-500/80 font-medium tracking-wide mb-3">A map of our shared journey.</p>
             
             {/* Search Input */}
             <div className="relative">
@@ -227,26 +228,27 @@ const App: React.FC = () => {
         </div>
 
         {/* Action Buttons */}
-        <div className="pointer-events-auto self-end sm:self-auto flex items-center gap-2">
-          
-          {/* Language Toggle */}
-          <Button variant="secondary" onClick={toggleLanguage} className="shadow-lg backdrop-blur bg-white/90 px-3">
-            <Globe size={16} />
-            <span>{lang === 'en' ? 'EN' : '中文'}</span>
-          </Button>
+        <div className="self-end sm:self-auto flex flex-col items-end gap-2">
+          <div className="pointer-events-auto flex items-center gap-2">
+            {/* Language Toggle */}
+            <Button variant="secondary" onClick={toggleLanguage} className="shadow-lg backdrop-blur bg-white/90 px-3">
+              <Globe size={16} />
+              <span>{lang === 'en' ? 'EN' : '中文'}</span>
+            </Button>
 
-          {/* Auth Button */}
-          {isAuthenticated ? (
-            <Button variant="secondary" onClick={handleLogout} className="shadow-lg backdrop-blur bg-white/90">
-              <Unlock size={16} className="text-green-600" />
-              <span className="hidden sm:inline">{t.admin_mode}</span>
-            </Button>
-          ) : (
-            <Button variant="primary" onClick={() => setShowAuthModal(true)} className="shadow-lg">
-              <Lock size={16} />
-              <span className="hidden sm:inline">{t.login_to_edit}</span>
-            </Button>
-          )}
+            {/* Auth Button */}
+            {isAuthenticated ? (
+              <Button variant="secondary" onClick={handleLogout} className="shadow-lg backdrop-blur bg-white/90">
+                <Unlock size={16} className="text-green-600" />
+                <span className="hidden sm:inline">{t.admin_mode}</span>
+              </Button>
+            ) : (
+              <Button variant="primary" onClick={() => setShowAuthModal(true)} className="shadow-lg">
+                <Lock size={16} />
+                <span className="hidden sm:inline">{t.login_to_edit}</span>
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
